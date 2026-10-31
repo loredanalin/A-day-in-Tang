@@ -4116,7 +4116,7 @@ else if(e.key==='+'||e.key==='=')target=Math.min(maxZoom,target*1.12);else if(e.
 function tick(time){
 if(window.__departed)return;
 var dt=last?Math.min((time-last)/1000,.1):.016;last=time;
-if(window.__knowledgeOpen||window.__lubanOpen){if(window.__renderThree&&window.__sceneDebug)window.__renderThree(window.__sceneDebug);requestAnimationFrame(tick);return;}
+if(window.__knowledgeOpen||window.__lubanOpen){requestAnimationFrame(tick);return;}
 var quiet=reduce&&reduce.matches,damp=1-Math.exp(-4.2*dt),before=zoom;
 zoom+=(target-zoom)*(quiet?1:damp);
 if(departureArmed&&window.__knowledgeProgress.ready&&zoom>=window.__knowledgeProgress.threshold){depart();return;}
@@ -4167,6 +4167,11 @@ requestAnimationFrame(tick);
 @media(prefers-reduced-motion:reduce){.luban-piece{transition:none}}
 
 #luban-board svg{display:block;width:100%;height:100%}.luban-board-caption{position:absolute;top:13px;left:14px;padding:6px 10px;border:1px solid #bca07877;background:#fff7e3dc;border-radius:5px;color:#75502f;font-size:13px;pointer-events:none}.luban-axis-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.luban-axis-controls .luban-primary{grid-column:1/-1}.luban-view-controls{display:flex;gap:8px;margin:10px 0;justify-content:center}.luban-view-controls button{font-size:13px;padding:6px 12px}.luban-side>p{margin-top:10px}#luban-board:focus-visible{outline:3px solid #9c6936;outline-offset:3px}@media(max-width:650px){.luban-axis-controls{margin:0}.luban-side{align-items:start}.luban-board-caption{font-size:11px;top:8px;left:8px}.luban-view-controls{margin:5px 0}}
+
+/* Keep scene geometry independent of text wrapping and SVG intrinsic sizing. */
+.luban-panel{height:min(868px,calc(100dvh - 32px));scrollbar-gutter:stable;overflow-anchor:none}
+.luban-layout{align-items:start}#luban-board svg{position:absolute;inset:0}
+#luban-status{min-height:4.5em}.luban-board-caption{font-variant-numeric:tabular-nums}
 </style><section id="luban-game" hidden role="dialog" aria-modal="true" aria-labelledby="luban-title">
 <div class="luban-panel"><p class="luban-eyebrow">长安一日 · 巧手拾遗</p><div class="luban-heading"><h1 id="luban-title" tabindex="-1">把鲁班锁拼回来</h1><span id="luban-count">已拼合 0 / 6</span></div>
 <p id="luban-hint">点选木块 → 转正凹槽 → 沿导轨推入。每一步都能看清接缝，最后插入钥匙榫。</p>
@@ -4189,17 +4194,39 @@ function rotate(v,axis,a){let r=v.slice(),c=Math.cos(a),s=Math.sin(a),u=(axis+1)
 function transform(v,i,moving,normal){let r=v.slice();if(moving)r=rotate(r,axes[i],angle*Math.PI/180);if(moving&&!normal)r[axes[i]]+=offset*signs[i];return rotate(r,2,view*Math.PI/2);}
 function project(v){return [400+(v[0]-v[1])*36,315+((v[0]+v[1])*.5-v[2])*36];}
 function points(vs){return vs.map(v=>project(v).map(x=>x.toFixed(2)).join(',')).join(' ');}
-function render(){const svg=node('svg',{viewBox:'0 0 800 610',role:'img','aria-label':'鲁班锁立体拼合视图'});svg.appendChild(node('ellipse',{cx:400,cy:485,rx:190,ry:34,fill:'#54381d',opacity:'.12'}));const defs=node('defs');const pat=node('pattern',{id:'luban-woodgrain',width:32,height:13,patternUnits:'userSpaceOnUse',patternTransform:'rotate(-22)'});pat.appendChild(node('path',{d:'M0 3 Q8 0 16 3 T32 3 M0 9 Q12 12 32 8',fill:'none',stroke:'#4e2d17','stroke-width':'.7',opacity:'.2'}));defs.appendChild(pat);svg.appendChild(defs);
-// A true geometric target stays aligned with the final joint throughout insertion.
-if(selected>=0){let guide=node('g',{'data-guide':ids[selected],opacity:'.32'});for(const f of meshes[selected]){let n=rotate(f.normal,2,view*Math.PI/2);if(n.reduce((a,b)=>a+b,0)<=.1)continue;let vs=f.vertices.map(v=>rotate(v,2,view*Math.PI/2));guide.appendChild(node('polygon',{points:points(vs),fill:'#e5d4b3',stroke:'#8b6439','stroke-width':1.3,'stroke-dasharray':'5 4'}));}svg.appendChild(guide);let a=[0,0,0];a[axes[selected]]=4*signs[selected];const pa=project(rotate(a,2,view*Math.PI/2)),pb=project([0,0,0]);svg.appendChild(node('line',{x1:pa[0],y1:pa[1],x2:pb[0],y2:pb[1],stroke:'#9c6936','stroke-width':2,'stroke-dasharray':'6 6',opacity:'.6'}));}
-const draw=[];for(let i=0;i<6;i++){const moving=i===selected;if(i>=count&&!moving)continue;for(const f of meshes[i]){let n=transform(f.normal,i,moving,true);if(n.reduce((a,b)=>a+b,0)<=.1)continue;let vs=f.vertices.map(v=>transform(v,i,moving,false));draw.push({vs,depth:vs.reduce((s,v)=>s+v[0]+v[1]+v[2],0)/4,n,i,moving});}}
-draw.sort((a,b)=>a.depth-b.depth);for(const f of draw){let light=f.n[2]>.5?'#ad794d':f.n[0]>.5?'#865331':'#694127',g=node('g',{'data-piece':ids[f.i]});g.appendChild(node('polygon',{points:points(f.vs),fill:light,stroke:'#51301e','stroke-width':1,'stroke-linejoin':'round'}));g.appendChild(node('polygon',{points:points(f.vs),fill:'url(#luban-woodgrain)',stroke:'none'}));if(f.moving)g.appendChild(node('polygon',{points:points(f.vs),fill:'none',stroke:'#f3d09a','stroke-width':1.4}));svg.appendChild(g);}
-board.replaceChildren(svg);const badge=document.createElement('div');badge.className='luban-board-caption';badge.textContent=count===6?'六榫归位 · 严丝合缝':selected<0?'点击右侧木块，开始对位':ids[selected]+' · '+(angle?'凹槽待转正':offset>0?'沿导轨移入 '+Math.round((4-offset)/4*100)+'%':'卡合就位');board.appendChild(badge);board.dataset.installed=count;board.dataset.offset=offset;board.dataset.busy=String(busy);}
+// Retain the SVG and its faces across frames; move woodgrain together with each face.
+let scene=null;
+function sceneNodes(){if(scene)return scene;
+const svg=node('svg',{viewBox:'0 0 800 610',role:'img','aria-label':'鲁班锁立体拼合视图'});
+svg.appendChild(node('ellipse',{cx:400,cy:485,rx:190,ry:34,fill:'#54381d',opacity:'.12'}));
+const defs=node('defs'),pat=node('pattern',{id:'luban-woodgrain',width:32,height:13,patternUnits:'userSpaceOnUse',patternTransform:'rotate(-22)'});
+pat.appendChild(node('path',{d:'M0 3 Q8 0 16 3 T32 3 M0 9 Q12 12 32 8',fill:'none',stroke:'#4e2d17','stroke-width':'.7',opacity:'.2'}));defs.appendChild(pat);svg.appendChild(defs);
+const guide=node('g'),faces=node('g'),badge=document.createElement('div');badge.className='luban-board-caption';svg.append(guide,faces);board.replaceChildren(svg,badge);
+return scene={svg,guide,faces,badge,cache:new Map(),guideKey:'',order:''};}
+function attr(el,name,value){value=String(value);if(el.getAttribute(name)!==value)el.setAttribute(name,value);}
+function render(){const scene=sceneNodes(),guideKey=selected+':'+view;
+if(scene.guideKey!==guideKey){scene.guideKey=guideKey;scene.guide.replaceChildren();
+if(selected>=0){const guide=node('g',{'data-guide':ids[selected],opacity:'.32'});
+for(const f of meshes[selected]){const n=rotate(f.normal,2,view*Math.PI/2);if(n.reduce((a,b)=>a+b,0)<=.1)continue;const vs=f.vertices.map(v=>rotate(v,2,view*Math.PI/2));guide.appendChild(node('polygon',{points:points(vs),fill:'#e5d4b3',stroke:'#8b6439','stroke-width':1.3,'stroke-dasharray':'5 4'}));}
+scene.guide.appendChild(guide);const a=[0,0,0];a[axes[selected]]=4*signs[selected];const pa=project(rotate(a,2,view*Math.PI/2)),pb=project([0,0,0]);scene.guide.appendChild(node('line',{x1:pa[0],y1:pa[1],x2:pb[0],y2:pb[1],stroke:'#9c6936','stroke-width':2,'stroke-dasharray':'6 6',opacity:'.6'}));}}
+const draw=[];
+for(let i=0;i<6;i++){const moving=i===selected;if(i>=count&&!moving)continue;
+const translation=[0,0,0];if(moving)translation[axes[i]]=offset*signs[i];const shift=rotate(translation,2,view*Math.PI/2),screenShift=project(shift),depthShift=shift.reduce((a,b)=>a+b,0);
+meshes[i].forEach((f,j)=>{const n=transform(f.normal,i,moving,true);if(n.reduce((a,b)=>a+b,0)<=.1)return;
+const key=i+':'+j;let entry=scene.cache.get(key);
+if(!entry){const g=node('g',{'data-piece':ids[i]}),wood=node('polygon',{'stroke':'#51301e','stroke-width':1,'stroke-linejoin':'round'}),grain=node('polygon',{fill:'url(#luban-woodgrain)',stroke:'none'}),highlight=node('polygon',{fill:'none',stroke:'#f3d09a','stroke-width':1.4});g.append(wood,grain,highlight);entry={g,wood,grain,highlight,geometryKey:''};scene.cache.set(key,entry);}
+const geometryKey=view+':'+(moving?angle:0);
+if(entry.geometryKey!==geometryKey){const vs=f.vertices.map(v=>rotate(moving?rotate(v,axes[i],angle*Math.PI/180):v,2,view*Math.PI/2)),ps=points(vs);entry.geometryKey=geometryKey;entry.depth=vs.reduce((sum,v)=>sum+v[0]+v[1]+v[2],0)/4;for(const polygon of [entry.wood,entry.grain,entry.highlight])attr(polygon,'points',ps);attr(entry.wood,'fill',n[2]>.5?'#ad794d':n[0]>.5?'#865331':'#694127');}
+attr(entry.g,'transform','translate('+(screenShift[0]-400).toFixed(3)+' '+(screenShift[1]-315).toFixed(3)+')');attr(entry.highlight,'visibility',moving?'visible':'hidden');draw.push({key,entry,depth:entry.depth+depthShift});});}
+draw.sort((a,b)=>Math.abs(a.depth-b.depth)>1e-7?a.depth-b.depth:a.key.localeCompare(b.key));
+const order=draw.map(f=>f.key).join('|');if(order!==scene.order){scene.order=order;const visible=new Set(draw.map(f=>f.key));for(const [key,entry] of scene.cache)if(!visible.has(key)&&entry.g.parentNode===scene.faces)entry.g.remove();let cursor=scene.faces.firstChild;for(const f of draw){if(f.entry.g===cursor)cursor=cursor.nextSibling;else scene.faces.insertBefore(f.entry.g,cursor);}}
+const label=count===6?'六榫归位 · 严丝合缝':selected<0?'点击右侧木块，开始对位':ids[selected]+' · '+(angle?'凹槽待转正':offset>0?'沿导轨移入 '+Math.round((4-offset)/4*100)+'%':'卡合就位');if(scene.badge.textContent!==label)scene.badge.textContent=label;
+board.dataset.installed=count;board.dataset.offset=offset;board.dataset.busy=String(busy);}
 function say(s){status.textContent=s;}
 function controls(){document.getElementById('luban-insert').disabled=selected<0||busy;document.getElementById('luban-back').disabled=selected<0||busy||offset>=4;document.getElementById('luban-turn').disabled=selected<0||busy||offset<4||selected===5;document.getElementById('luban-undo').disabled=count===0||busy;tray.querySelectorAll('button').forEach((b,i)=>{b.disabled=i<count||busy;b.setAttribute('aria-pressed',String(i===selected));b.querySelector('small').textContent=i<count?'✓':'';});document.getElementById('luban-count').textContent='已拼合 '+count+' / 6';}
 function select(i){if(busy)return;if(i!==count){say('先完成 '+ids[count]+' 的卡合，再安装 '+ids[i]+'。');return;}if(selected===i)return;selected=i;offset=4;angle=(i===1||i===4)?90:0;controls();render();say(ids[i]+' 已选中。'+tips[i]+(angle?'先点击“转正凹槽”，再推入。':'点击“沿导轨推入”继续。'));}
 function animate(nextOffset,nextAngle,done){if(busy)return;busy=true;controls();render();const token=generation,fromOffset=offset,fromAngle=angle,duration=matchMedia('(prefers-reduced-motion: reduce)').matches?0:360;let start;function tick(now){if(token!==generation)return;if(start===undefined)start=now;const t=duration?Math.min(1,(now-start)/duration):1,e=1-Math.pow(1-t,3);offset=fromOffset+(nextOffset-fromOffset)*e;angle=fromAngle+(nextAngle-fromAngle)*e;render();if(t<1){frame=requestAnimationFrame(tick);}else{offset=nextOffset;angle=nextAngle;busy=false;if(done)done();controls();render();}}frame=requestAnimationFrame(tick);}
-function lock(){const id=ids[selected];count++;selected=-1;if(count===6){window.__lubanComplete=true;document.getElementById('luban-complete').hidden=false;document.getElementById('luban-continue').hidden=false;say('最后的钥匙榫已锁定，六个接缝全部归位。可以转动视角检查成品。');document.getElementById('luban-continue').focus();}else{say(id+' 已卡合。下一步选择 '+ids[count]+'。'+tips[count]);tray.children[count].focus();}}
+function lock(){const id=ids[selected];count++;selected=-1;if(count===6){window.__lubanComplete=true;document.getElementById('luban-complete').hidden=false;document.getElementById('luban-continue').hidden=false;say('最后的钥匙榫已锁定，六个接缝全部归位。可以转动视角检查成品。');document.getElementById('luban-continue').focus({preventScroll:true});}else{say(id+' 已卡合。下一步选择 '+ids[count]+'。'+tips[count]);tray.children[count].focus({preventScroll:true});}}
 function insert(){if(selected<0||busy)return;if(angle!==0){say('凹槽朝向还未对齐，请先点击“转正凹槽”。');return;}const next=Math.max(0,offset-1);animate(next,angle,()=>{if(next===0)lock();else say(ids[selected]+' 正沿导轨进入，再推入 '+next+' 步即可卡合。');});}
 function reset(){generation++;cancelAnimationFrame(frame);busy=false;count=0;selected=-1;offset=4;angle=0;view=0;window.__lubanComplete=false;document.getElementById('luban-complete').hidden=true;document.getElementById('luban-continue').hidden=true;tray.replaceChildren();for(let i=0;i<6;i++){let b=document.createElement('button');b.className='luban-card';b.setAttribute('aria-label',ids[i]+' 号棕色木块');let img=document.createElement('img');img.src=sprites[ids[i]];img.alt='';img.draggable=false;b.append(img,document.createTextNode(ids[i]),document.createElement('small'));b.onclick=()=>select(i);tray.appendChild(b);}controls();render();say('选择 A，先把第一根棕色锁身放好。');}
 document.getElementById('luban-insert').onclick=insert;document.getElementById('luban-back').onclick=()=>{if(selected>=0&&!busy)animate(Math.min(4,offset+1),angle);};document.getElementById('luban-turn').onclick=()=>{if(selected>=0&&!busy&&offset===4)animate(offset,angle?0:90,()=>say(angle?'凹槽已转离导轨。':'凹槽已对齐，可以沿导轨推入。'));};document.getElementById('luban-reset').onclick=reset;

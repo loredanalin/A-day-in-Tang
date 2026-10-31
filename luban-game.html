@@ -12,6 +12,11 @@
 @media(prefers-reduced-motion:reduce){.luban-piece{transition:none}}
 
 #luban-board svg{display:block;width:100%;height:100%}.luban-board-caption{position:absolute;top:13px;left:14px;padding:6px 10px;border:1px solid #bca07877;background:#fff7e3dc;border-radius:5px;color:#75502f;font-size:13px;pointer-events:none}.luban-axis-controls{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}.luban-axis-controls .luban-primary{grid-column:1/-1}.luban-view-controls{display:flex;gap:8px;margin:10px 0;justify-content:center}.luban-view-controls button{font-size:13px;padding:6px 12px}.luban-side>p{margin-top:10px}#luban-board:focus-visible{outline:3px solid #9c6936;outline-offset:3px}@media(max-width:650px){.luban-axis-controls{margin:0}.luban-side{align-items:start}.luban-board-caption{font-size:11px;top:8px;left:8px}.luban-view-controls{margin:5px 0}}
+
+/* Keep scene geometry independent of text wrapping and SVG intrinsic sizing. */
+.luban-panel{height:min(868px,calc(100dvh - 32px));scrollbar-gutter:stable;overflow-anchor:none}
+.luban-layout{align-items:start}#luban-board svg{position:absolute;inset:0}
+#luban-status{min-height:4.5em}.luban-board-caption{font-variant-numeric:tabular-nums}
 </style><section id="luban-game" hidden role="dialog" aria-modal="true" aria-labelledby="luban-title">
 <div class="luban-panel"><p class="luban-eyebrow">长安一日 · 巧手拾遗</p><div class="luban-heading"><h1 id="luban-title" tabindex="-1">把鲁班锁拼回来</h1><span id="luban-count">已拼合 0 / 6</span></div>
 <p id="luban-hint">点选木块 → 转正凹槽 → 沿导轨推入。每一步都能看清接缝，最后插入钥匙榫。</p>
