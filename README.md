@@ -1,11 +1,25 @@
 # 长安一日 · 筑见大唐
 
-打开 `courtyard-offline.html` 进入完整故事，新增旁白之后进入鲁班锁小游戏。该 HTML 内嵌所有素材，可离线使用。
+打开 `courtyard-offline.html` 进入完整故事，鲁班锁旁白之后进入小游戏。该 HTML 内嵌所有素材和交互，可离线使用。
 
-打开 `luban-game.html` 可直接玩鲁班锁小游戏。保留相邻的 `assets/luban` 文件夹。
+打开 `luban-game.html` 可直接游玩。保留相邻的 `assets/luban` 文件夹，完整解压 ZIP 后再打开页面。
 
-点击 A–F 木块选择零件，点击亮起的字母卡槽或“向卡槽移动一步”逐步移动。也可用方向按钮调整，B 和 E 需要点击 ↻ 旋转为竖向。按 A→B→C→D→E→F 顺序拼合后可以返回庭院。支持重新拼合和手机触摸。
+## 鲁班锁拼合
 
-素材：`assets/luban/A.png` 至 `F.png` 为六张独立透明背景图片。拼合按图示做点击交互演示。
+六根木块统一为棕色木纹，通过 A–F 编号区分。
 
-下载：`downloads/luban-game.zip` 为独立小游戏及素材；`downloads/luban-pieces.zip` 为六张木块图片；`downloads/tang-v3.zip` 为完整故事单文件版本。
+1. 点击当前木块，进入立体对位视图。
+2. B、E 先点击“转正凹槽”；凹槽朝向未对齐时无法推入。
+3. 点击拼合区或“沿导轨推入”，分四步将木块移到接缝位置。
+4. 可以“向外退出”、撤回上一根、重新拼合，并左右转动视角检查凹槽。
+5. 插入 F 钥匙榫后完成，再返回庭院游览。
+
+同一组立体几何体从准备、移动一直显示到完成，最终拼合位置没有重叠体积；这是按图示制作的点击拼合演示。
+
+`assets/luban/A.png` 至 `F.png` 是六张透明背景棕色图片；`assembled.png` 是成品参考图。
+
+## 下载
+
+- `downloads/luban-game.zip`：独立小游戏及所有素材。
+- `downloads/luban-pieces.zip`：六张独立棕色木块图片。
+- `downloads/tang-v3.zip`：完整故事单文件版本。
