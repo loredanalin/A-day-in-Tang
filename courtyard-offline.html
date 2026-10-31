@@ -149,6 +149,10 @@ if(step===0){
 document.getElementById('narration-speaker').textContent='白居易';
 document.getElementById('narration-text').textContent='今日尚有公务，须早些出门。';
 dialogue.setAttribute('data-dialogue','bai-juyi');
+}else if(step===1){
+document.getElementById('narration-speaker').textContent='旁白';
+document.getElementById('narration-text').textContent='行走间，袍角带倒了桌沿的鲁班锁。';
+dialogue.setAttribute('data-dialogue','luban-lock');
 }else{
 dialogue.hidden=true;
 dialogue.setAttribute('data-dialogue','finished');
